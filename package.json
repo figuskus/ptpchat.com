@@ -1,0 +1,15 @@
+{
+  "name": "ptpchat",
+  "version": "1.0.0",
+  "description": "P2P Random Chat - Meet strangers instantly",
+  "scripts": {
+    "start": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "dev:worker": "cd worker && npm run dev",
+    "deploy:worker": "cd worker && npm run deploy",
+    "deploy:frontend": "cd frontend && npm run build && npx wrangler pages deploy dist/frontend/browser --project-name=ptpchat"
+  },
+  "keywords": ["p2p", "chat", "webrtc", "angular", "cloudflare"],
+  "author": "",
+  "license": "MIT"
+}
