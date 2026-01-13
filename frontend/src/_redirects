@@ -1,0 +1,6 @@
+# Static files - serve directly (must be BEFORE the SPA fallback)
+/robots.txt     /robots.txt     200
+/sitemap.xml    /sitemap.xml    200
+
+# SPA fallback - serve index.html for all non-file routes
+/*    /index.html   200
