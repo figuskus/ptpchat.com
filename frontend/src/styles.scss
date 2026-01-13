@@ -1,30 +1,36 @@
 :root {
-  // Cyberpunk-inspired color palette
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #12121a;
-  --bg-tertiary: #1a1a25;
-  --bg-card: #15151f;
+  // Modern dark color palette
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #242424;
+  --bg-card: #1e1e1e;
   
-  --accent-primary: #00ffaa;
-  --accent-secondary: #ff006e;
-  --accent-tertiary: #7b2cbf;
+  --accent-primary: #3b82f6;
+  --accent-secondary: #8b5cf6;
+  --accent-tertiary: #06b6d4;
   
-  --text-primary: #e8e8e8;
-  --text-secondary: #a0a0a0;
-  --text-muted: #606060;
+  --text-primary: #fafafa;
+  --text-secondary: #a3a3a3;
+  --text-muted: #525252;
   
-  --border-color: #2a2a3a;
-  --border-glow: rgba(0, 255, 170, 0.3);
+  --border-color: #2e2e2e;
+  --border-hover: #404040;
   
-  --shadow-glow: 0 0 30px rgba(0, 255, 170, 0.15);
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
   
-  --font-main: 'Outfit', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   
   --transition-fast: 0.15s ease;
-  --transition-medium: 0.3s ease;
-  --transition-slow: 0.5s ease;
+  --transition-medium: 0.25s ease;
+  --transition-slow: 0.4s ease;
 }
 
 *, *::before, *::after {
@@ -47,7 +53,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-// Animated background
+// Subtle gradient background
 body::before {
   content: '';
   position: fixed;
@@ -56,25 +62,8 @@ body::before {
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(ellipse at 20% 20%, rgba(123, 44, 191, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(0, 255, 170, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(255, 0, 110, 0.05) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-// Grid overlay
-body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 50px 50px;
+    radial-gradient(ellipse at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -87,6 +76,7 @@ body::after {
 
 ::-webkit-scrollbar-track {
   background: var(--bg-secondary);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -94,14 +84,14 @@ body::after {
   border-radius: 4px;
   
   &:hover {
-    background: var(--text-muted);
+    background: var(--border-hover);
   }
 }
 
 // Selection
 ::selection {
   background: var(--accent-primary);
-  color: var(--bg-primary);
+  color: white;
 }
 
 // Button base styles
@@ -111,10 +101,16 @@ button {
   border: none;
   outline: none;
   transition: all var(--transition-fast);
+  border-radius: var(--radius-md);
   
   &:disabled {
     cursor: not-allowed;
     opacity: 0.5;
+  }
+  
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
   }
 }
 
@@ -126,10 +122,11 @@ input, textarea {
   color: var(--text-primary);
   outline: none;
   transition: all var(--transition-fast);
+  border-radius: var(--radius-md);
   
   &:focus {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(0, 255, 170, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   }
   
   &::placeholder {
@@ -147,21 +144,9 @@ input, textarea {
   }
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(0, 255, 170, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(0, 255, 170, 0.6);
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -182,14 +167,5 @@ input, textarea {
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes typing {
-  0%, 60%, 100% {
-    transform: translateY(0);
-  }
-  30% {
-    transform: translateY(-4px);
   }
 }

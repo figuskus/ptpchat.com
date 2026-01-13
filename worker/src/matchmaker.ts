@@ -11,7 +11,7 @@ interface Session {
 }
 
 interface SignalingMessage {
-  type: 'find-match' | 'next' | 'offer' | 'answer' | 'ice-candidate' | 'chat-message';
+  type: 'find-match' | 'next' | 'offer' | 'answer' | 'ice-candidate' | 'chat-message' | 'get-stats';
   payload?: unknown;
 }
 
@@ -59,7 +59,10 @@ export class Matchmaker implements DurableObject {
       partner: null
     });
 
-    console.log(`[Matchmaker] New session: ${sessionId}`);
+    console.log(`[Matchmaker] New session: ${sessionId}. Total online: ${this.sessions.size}`);
+    
+    // Send current stats to the new user
+    this.sendStats(ws);
 
     // Handle incoming messages
     ws.addEventListener('message', async (event) => {
@@ -120,7 +123,26 @@ export class Matchmaker implements DurableObject {
           });
         }
         break;
+        
+      case 'get-stats':
+        this.sendStats(ws);
+        break;
     }
+  }
+  
+  private sendStats(ws: WebSocket): void {
+    const onlineCount = this.sessions.size;
+    const waitingCount = this.waitingQueue.length;
+    const chattingCount = Math.floor((onlineCount - waitingCount) / 2) * 2; // Paired users
+    
+    this.sendToSocket(ws, {
+      type: 'stats',
+      payload: {
+        online: onlineCount,
+        waiting: waitingCount,
+        chatting: chattingCount
+      }
+    });
   }
 
   private findMatch(ws: WebSocket): void {

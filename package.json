@@ -7,7 +7,7 @@
     "build": "cd frontend && npm run build",
     "dev:worker": "cd worker && npm run dev",
     "deploy:worker": "cd worker && npm run deploy",
-    "deploy:frontend": "cd frontend && npm run build && npx wrangler pages deploy dist/frontend/browser --project-name=ptpchat"
+    "deploy:frontend": "cd frontend && npm run build && npx wrangler pages deploy dist/frontend/browser --project-name=ptpchat-com"
   },
   "keywords": ["p2p", "chat", "webrtc", "angular", "cloudflare"],
   "author": "",

@@ -5,9 +5,15 @@ import { environment } from '../../environments/environment';
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'waiting' | 'matched' | 'chatting' | 'partner-left';
 
 export interface SignalingMessage {
-  type: 'matched' | 'waiting' | 'offer' | 'answer' | 'ice-candidate' | 'partner-disconnected';
+  type: 'matched' | 'waiting' | 'offer' | 'answer' | 'ice-candidate' | 'partner-disconnected' | 'chat-message' | 'stats';
   role?: 'initiator' | 'receiver';
-  payload?: RTCSessionDescriptionInit | RTCIceCandidateInit;
+  payload?: RTCSessionDescriptionInit | RTCIceCandidateInit | { text: string } | { online: number; waiting: number; chatting: number };
+}
+
+export interface OnlineStats {
+  online: number;
+  waiting: number;
+  chatting: number;
 }
 
 @Injectable({
@@ -17,8 +23,10 @@ export class MatchmakingService {
   private ws: WebSocket | null = null;
   private messages$ = new Subject<SignalingMessage>();
   private statusSubject = new BehaviorSubject<ConnectionStatus>('disconnected');
+  private statsSubject = new BehaviorSubject<OnlineStats>({ online: 0, waiting: 0, chatting: 0 });
   
   status$ = this.statusSubject.asObservable();
+  stats$ = this.statsSubject.asObservable();
   
   get currentStatus(): ConnectionStatus {
     return this.statusSubject.value;
@@ -49,6 +57,9 @@ export class MatchmakingService {
           this.statusSubject.next('matched');
         } else if (message.type === 'partner-disconnected') {
           this.statusSubject.next('partner-left');
+        } else if (message.type === 'stats') {
+          const stats = message.payload as OnlineStats;
+          this.statsSubject.next(stats);
         }
         
         this.messages$.next(message);

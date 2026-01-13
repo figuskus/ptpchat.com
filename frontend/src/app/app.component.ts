@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
-import { MatchmakingService, ConnectionStatus } from './services/matchmaking.service';
+import { MatchmakingService, ConnectionStatus, OnlineStats } from './services/matchmaking.service';
 import { WebRTCService, ChatMessage } from './services/webrtc.service';
 
 @Component({
@@ -38,9 +38,17 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
           <span class="logo-icon">◈</span>
           <span class="logo-text">PTP<span class="accent">Chat</span></span>
         </div>
-        <div class="status-indicator" [class]="status">
-          <span class="status-dot"></span>
-          <span class="status-text">{{ getStatusText() }}</span>
+        <div class="header-right">
+          @if (onlineStats.online > 0) {
+            <div class="online-count">
+              <span class="online-dot"></span>
+              <span>{{ onlineStats.online }} online</span>
+            </div>
+          }
+          <div class="status-indicator" [class]="status">
+            <span class="status-dot"></span>
+            <span class="status-text">{{ getStatusText() }}</span>
+          </div>
         </div>
       </header>
 
@@ -176,8 +184,102 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
 
       <!-- Footer -->
       <footer class="footer" @fadeIn>
-        <span>Built with WebRTC & Cloudflare Workers</span>
+        <div class="footer-links">
+          <a (click)="showPrivacy = true">Privacy Policy</a>
+          <span class="separator">•</span>
+          <a (click)="showTerms = true">Terms of Service</a>
+        </div>
       </footer>
+      
+      <!-- Privacy Policy Modal -->
+      @if (showPrivacy) {
+        <div class="modal-overlay" (click)="showPrivacy = false">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h2>Privacy Policy</h2>
+              <button class="modal-close" (click)="showPrivacy = false">×</button>
+            </div>
+            <div class="modal-body">
+              <p><strong>Last updated:</strong> January 2026</p>
+              
+              <h3>1. Information We Collect</h3>
+              <p>PTPChat is designed with privacy in mind. We collect minimal data:</p>
+              <ul>
+                <li><strong>No personal information:</strong> We don't require accounts, emails, or any identifying information.</li>
+                <li><strong>No message storage:</strong> Messages are transmitted peer-to-peer and are never stored on our servers.</li>
+                <li><strong>Connection data:</strong> We temporarily process IP addresses to facilitate WebRTC connections. This data is not logged or stored.</li>
+              </ul>
+              
+              <h3>2. How We Use Information</h3>
+              <p>The minimal data we process is used solely to:</p>
+              <ul>
+                <li>Match you with other users</li>
+                <li>Facilitate peer-to-peer connections</li>
+                <li>Relay messages only when direct P2P connection fails</li>
+              </ul>
+              
+              <h3>3. Data Sharing</h3>
+              <p>We do not sell, trade, or share any user data with third parties.</p>
+              
+              <h3>4. Cookies</h3>
+              <p>We do not use cookies or tracking technologies.</p>
+              
+              <h3>5. Contact</h3>
+              <p>For privacy concerns, contact us through our website.</p>
+            </div>
+          </div>
+        </div>
+      }
+      
+      <!-- Terms of Service Modal -->
+      @if (showTerms) {
+        <div class="modal-overlay" (click)="showTerms = false">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h2>Terms of Service</h2>
+              <button class="modal-close" (click)="showTerms = false">×</button>
+            </div>
+            <div class="modal-body">
+              <p><strong>Last updated:</strong> January 2026</p>
+              
+              <h3>1. Acceptance of Terms</h3>
+              <p>By using PTPChat, you agree to these terms. If you disagree, please do not use the service.</p>
+              
+              <h3>2. Service Description</h3>
+              <p>PTPChat is a free, anonymous chat service that connects random users for text-based conversations using peer-to-peer technology.</p>
+              
+              <h3>3. User Conduct</h3>
+              <p>You agree NOT to:</p>
+              <ul>
+                <li>Share illegal content or engage in illegal activities</li>
+                <li>Harass, threaten, or abuse other users</li>
+                <li>Share explicit content with minors</li>
+                <li>Attempt to identify or track other users</li>
+                <li>Use the service to spam or distribute malware</li>
+                <li>Violate any applicable laws or regulations</li>
+              </ul>
+              
+              <h3>4. Age Requirement</h3>
+              <p>You must be at least 18 years old to use this service. By using PTPChat, you confirm you are 18 or older.</p>
+              
+              <h3>5. No Warranty</h3>
+              <p>The service is provided "as is" without warranties of any kind. We do not guarantee availability, security, or reliability of the service.</p>
+              
+              <h3>6. Limitation of Liability</h3>
+              <p>To the maximum extent permitted by law, we shall not be liable for any damages arising from your use of this service, including but not limited to direct, indirect, incidental, or consequential damages.</p>
+              
+              <h3>7. User Responsibility</h3>
+              <p>You are solely responsible for your interactions with other users. We do not monitor conversations and cannot be held responsible for user behavior or content.</p>
+              
+              <h3>8. Termination</h3>
+              <p>We reserve the right to terminate or suspend access to the service at any time without notice.</p>
+              
+              <h3>9. Changes to Terms</h3>
+              <p>We may update these terms at any time. Continued use of the service constitutes acceptance of any changes.</p>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -204,14 +306,14 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     .logo {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 1.5rem;
-      font-weight: 700;
+      gap: 8px;
+      font-size: 1.4rem;
+      font-weight: 600;
     }
 
     .logo-icon {
       color: var(--accent-primary);
-      font-size: 1.8rem;
+      font-size: 1.5rem;
     }
 
     .logo-text .accent {
@@ -222,11 +324,12 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 16px;
+      padding: 8px 14px;
       background: var(--bg-secondary);
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-family: var(--font-mono);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
     }
 
     .status-dot {
@@ -239,17 +342,16 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     .status-indicator.connecting .status-dot,
     .status-indicator.waiting .status-dot,
     .status-indicator.matched .status-dot {
-      background: #fbbf24;
+      background: #f59e0b;
       animation: pulse 1.5s infinite;
     }
 
     .status-indicator.chatting .status-dot {
-      background: var(--accent-primary);
-      box-shadow: 0 0 10px var(--accent-primary);
+      background: #22c55e;
     }
 
     .status-indicator.partner-left .status-dot {
-      background: var(--accent-secondary);
+      background: #ef4444;
     }
 
     // Main Content
@@ -282,7 +384,7 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
 
     .gradient-text {
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -299,17 +401,18 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 18px 40px;
-      background: linear-gradient(135deg, var(--accent-primary), #00cc88);
-      color: var(--bg-primary);
-      font-size: 1.1rem;
+      padding: 16px 32px;
+      background: var(--accent-primary);
+      color: white;
+      font-size: 1rem;
       font-weight: 600;
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
       transition: all var(--transition-medium);
       
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 40px rgba(0, 255, 170, 0.3);
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
       }
       
       &:active {
@@ -323,7 +426,7 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
 
     .btn-icon {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
     }
 
     .features {
@@ -365,28 +468,28 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       position: absolute;
       width: 100%;
       height: 100%;
-      border: 3px solid transparent;
+      border: 3px solid var(--border-color);
       border-top-color: var(--accent-primary);
       border-radius: 50%;
-      animation: spin 1.5s linear infinite;
+      animation: spin 1s linear infinite;
       
       &:nth-child(2) {
-        width: 60%;
-        height: 60%;
-        top: 20%;
-        left: 20%;
-        border-top-color: var(--accent-tertiary);
-        animation-duration: 1.2s;
+        width: 65%;
+        height: 65%;
+        top: 17.5%;
+        left: 17.5%;
+        border-top-color: var(--accent-secondary);
+        animation-duration: 1.5s;
         animation-direction: reverse;
       }
       
       &:nth-child(3) {
-        width: 30%;
-        height: 30%;
-        top: 35%;
-        left: 35%;
-        border-top-color: var(--accent-secondary);
-        animation-duration: 0.9s;
+        width: 35%;
+        height: 35%;
+        top: 32.5%;
+        left: 32.5%;
+        border-top-color: var(--accent-tertiary);
+        animation-duration: 2s;
       }
     }
 
@@ -405,15 +508,16 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
 
     .btn-secondary {
-      padding: 12px 30px;
-      background: transparent;
+      padding: 12px 24px;
+      background: var(--bg-secondary);
       color: var(--text-secondary);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 0.95rem;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
       
       &:hover {
-        border-color: var(--text-secondary);
+        background: var(--bg-tertiary);
+        border-color: var(--border-hover);
         color: var(--text-primary);
       }
     }
@@ -460,13 +564,13 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
         justify-content: flex-end;
         
         .message-bubble {
-          background: linear-gradient(135deg, var(--accent-primary), #00cc88);
-          color: var(--bg-primary);
-          border-radius: 20px 20px 4px 20px;
+          background: var(--accent-primary);
+          color: white;
+          border-radius: var(--radius-lg) var(--radius-lg) 4px var(--radius-lg);
         }
         
         .message-time {
-          color: rgba(0, 0, 0, 0.5);
+          color: rgba(255, 255, 255, 0.7);
         }
       }
       
@@ -476,14 +580,14 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
         .message-bubble {
           background: var(--bg-tertiary);
           border: 1px solid var(--border-color);
-          border-radius: 20px 20px 20px 4px;
+          border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px;
         }
       }
     }
 
     .message-bubble {
       max-width: 70%;
-      padding: 12px 18px;
+      padding: 12px 16px;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -537,22 +641,22 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
 
     .btn-send {
-      width: 52px;
-      height: 52px;
-      background: linear-gradient(135deg, var(--accent-primary), #00cc88);
-      border-radius: 12px;
+      width: 48px;
+      height: 48px;
+      background: var(--accent-primary);
+      border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
       
       svg {
-        width: 22px;
-        height: 22px;
-        color: var(--bg-primary);
+        width: 20px;
+        height: 20px;
+        color: white;
       }
       
       &:hover:not(:disabled) {
-        transform: scale(1.05);
+        background: #2563eb;
       }
       
       &:disabled {
@@ -570,15 +674,16 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       justify-content: center;
       gap: 8px;
       padding: 12px;
-      background: transparent;
+      background: var(--bg-secondary);
       color: var(--text-secondary);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 0.9rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
       
       &:hover {
-        border-color: var(--accent-secondary);
-        color: var(--accent-secondary);
+        background: var(--bg-tertiary);
+        border-color: var(--border-hover);
+        color: var(--text-primary);
       }
       
       .next-icon {
@@ -597,6 +702,135 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       font-size: 0.8rem;
       color: var(--text-muted);
       border-top: 1px solid var(--border-color);
+    }
+    
+    .footer-links {
+      margin-top: 8px;
+      
+      a {
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color var(--transition-fast);
+        
+        &:hover {
+          color: var(--accent-primary);
+        }
+      }
+      
+      .separator {
+        margin: 0 8px;
+      }
+    }
+    
+    // Header right section
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .online-count {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-primary);
+    }
+    
+    // Modal
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .modal {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      
+      h2 {
+        margin: 0;
+        font-size: 1.3rem;
+      }
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      
+      &:hover {
+        color: var(--text-primary);
+      }
+    }
+    
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      
+      h3 {
+        margin: 24px 0 12px;
+        font-size: 1.1rem;
+        color: var(--accent-primary);
+        
+        &:first-of-type {
+          margin-top: 16px;
+        }
+      }
+      
+      p {
+        margin: 0 0 12px;
+        color: var(--text-secondary);
+      }
+      
+      ul {
+        margin: 0 0 12px;
+        padding-left: 24px;
+        color: var(--text-secondary);
+        
+        li {
+          margin-bottom: 6px;
+        }
+      }
+      
+      strong {
+        color: var(--text-primary);
+      }
     }
 
     // Responsive
@@ -627,6 +861,9 @@ export class AppComponent implements OnDestroy, AfterViewChecked {
   status: ConnectionStatus = 'disconnected';
   messages: ChatMessage[] = [];
   messageInput = '';
+  onlineStats: OnlineStats = { online: 0, waiting: 0, chatting: 0 };
+  showPrivacy = false;
+  showTerms = false;
   
   private shouldScrollToBottom = false;
   
@@ -642,6 +879,10 @@ export class AppComponent implements OnDestroy, AfterViewChecked {
     this.webrtc.messages$.pipe(takeUntil(this.destroy$)).subscribe((message) => {
       this.messages.push(message);
       this.shouldScrollToBottom = true;
+    });
+    
+    this.matchmaking.stats$.pipe(takeUntil(this.destroy$)).subscribe((stats) => {
+      this.onlineStats = stats;
     });
   }
   
