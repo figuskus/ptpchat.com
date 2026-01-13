@@ -1,0 +1,10 @@
+# robots.txt for ptpchat.com
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://ptpchat.com/sitemap.xml
+
+# Crawl-delay (optional, be nice to bots)
+Crawl-delay: 1
