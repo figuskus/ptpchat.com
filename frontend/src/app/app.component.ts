@@ -182,10 +182,12 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
         }
       </main>
 
-      <!-- Sponsored area: below main UI, non-sticky (footer strip) -->
+      <!-- Sponsored area: below main UI (slot styled in .footer-ad-card) -->
       <div class="footer-ad-wrap">
-        <!-- id used by src/load-footer-ads.ts (plain DOM; avoids Angular script handling) -->
-        <div id="ptpchat-ad-host" class="footer-ad-host"></div>
+        <div class="footer-ad-card">
+          <p class="footer-ad-label">Advertisement</p>
+          <div id="ptpchat-ad-host" class="footer-ad-host"></div>
+        </div>
       </div>
 
       <!-- Footer -->
@@ -299,8 +301,11 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       flex-direction: column;
       height: 100vh;
       max-width: 900px;
+      width: 100%;
       margin: 0 auto;
       padding: 0 20px;
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
     // Header
@@ -711,32 +716,62 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       }
     }
 
-    // Footer
+    // Footer — ad slot (card keeps layout stable; inner width matches fluid column)
     .footer-ad-wrap {
       flex-shrink: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 12px 0 8px;
+      width: 100%;
+      padding: 10px 0 6px;
       border-top: 1px solid var(--border-color);
+    }
+
+    .footer-ad-card {
+      width: 100%;
+      max-width: min(728px, 100%);
+      margin: 0 auto;
+      padding: 22px 10px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    .footer-ad-label {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      margin: 0;
+      font-size: 0.62rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      pointer-events: none;
     }
 
     .footer-ad-host {
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     .footer-ad-host--mobile {
-      min-height: 250px;
-      width: 300px;
-      max-width: 100%;
+      width: 100%;
+      max-width: min(300px, 100%);
+      margin: 0 auto;
+      min-height: 120px;
     }
 
     .footer-ad-host--desktop {
+      width: 100%;
+      max-width: 728px;
+      margin: 0 auto;
       min-height: 90px;
-      width: min(728px, 100%);
     }
 
     .footer {
@@ -888,6 +923,10 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       
       .message-bubble {
         max-width: 85%;
+      }
+
+      .footer-ad-card {
+        padding: 22px 8px 10px;
       }
     }
   `]
