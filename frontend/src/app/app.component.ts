@@ -294,17 +294,28 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+      max-height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
     .app-container {
       position: relative;
       z-index: 1;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      height: 100%;
+      max-height: 100%;
+      min-height: 0;
       max-width: 900px;
       width: 100%;
       margin: 0 auto;
       padding: 0 20px;
-      overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      overflow: hidden;
       box-sizing: border-box;
     }
 
@@ -377,27 +388,35 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       overflow: hidden;
     }
 
-    // Welcome Screen
+    // Welcome Screen — no scroll: content scales/clamps inside flex area
     .welcome-screen {
       flex: 1;
       min-height: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow-y: auto;
+      overflow: hidden;
     }
 
     .welcome-content {
       text-align: center;
       max-width: 600px;
+      width: 100%;
+      padding: 8px 0;
+      max-height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .title {
-      font-size: 3.5rem;
+      font-size: clamp(1.85rem, 5.5vmin + 0.5rem, 3.5rem);
       font-weight: 700;
       line-height: 1.1;
-      margin-bottom: 24px;
+      margin-bottom: clamp(10px, 2.5vmin, 24px);
       letter-spacing: -0.02em;
+      flex-shrink: 0;
     }
 
     .gradient-text {
@@ -408,10 +427,11 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
 
     .subtitle {
-      font-size: 1.2rem;
+      font-size: clamp(0.95rem, 2.2vmin + 0.35rem, 1.2rem);
       color: var(--text-secondary);
-      margin-bottom: 40px;
-      line-height: 1.6;
+      margin-bottom: clamp(16px, 3vmin, 40px);
+      line-height: 1.5;
+      flex-shrink: 0;
     }
 
     .btn-primary {
@@ -449,8 +469,11 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     .features {
       display: flex;
       justify-content: center;
-      gap: 40px;
-      margin-top: 60px;
+      flex-wrap: wrap;
+      gap: clamp(12px, 2.5vmin, 40px);
+      margin-top: clamp(16px, 4vmin, 60px);
+      flex-shrink: 1;
+      min-height: 0;
     }
 
     .feature {
@@ -458,7 +481,7 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       align-items: center;
       gap: 8px;
       color: var(--text-secondary);
-      font-size: 0.95rem;
+      font-size: clamp(0.8rem, 1.8vmin + 0.2rem, 0.95rem);
     }
 
     .feature-icon {
@@ -473,8 +496,8 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 30px;
-      overflow-y: auto;
+      gap: clamp(16px, 3vmin, 30px);
+      overflow: hidden;
     }
 
     .loader {
@@ -517,8 +540,10 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
 
     .loading-text {
-      font-size: 1.5rem;
+      font-size: clamp(1.05rem, 3vmin + 0.25rem, 1.5rem);
       font-weight: 500;
+      text-align: center;
+      padding: 0 12px;
     }
 
     .loading-subtext {
@@ -541,13 +566,13 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       }
     }
 
-    // Chat Screen
+    // Chat Screen — only .messages-container scrolls
     .chat-screen {
       flex: 1;
       min-height: 0;
       display: flex;
       flex-direction: column;
-      padding: 20px 0;
+      padding: clamp(8px, 2vmin, 20px) 0;
       overflow: hidden;
     }
 
@@ -720,7 +745,7 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     .footer-ad-wrap {
       flex-shrink: 0;
       width: 100%;
-      padding: 10px 0 6px;
+      padding: 6px 0 4px;
       border-top: 1px solid var(--border-color);
     }
 
@@ -728,7 +753,7 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       width: 100%;
       max-width: min(728px, 100%);
       margin: 0 auto;
-      padding: 22px 10px 12px;
+      padding: clamp(14px, 2.5vmin, 22px) 10px clamp(8px, 1.5vmin, 12px);
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
@@ -764,18 +789,18 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       width: 100%;
       max-width: min(300px, 100%);
       margin: 0 auto;
-      min-height: 120px;
+      min-height: 0;
     }
 
     .footer-ad-host--desktop {
       width: 100%;
       max-width: 728px;
       margin: 0 auto;
-      min-height: 90px;
+      min-height: 0;
     }
 
     .footer {
-      padding: 12px 0 20px;
+      padding: 8px 0 16px;
       text-align: center;
       font-size: 0.8rem;
       color: var(--text-muted);
@@ -912,13 +937,9 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
 
     // Responsive
     @media (max-width: 640px) {
-      .title {
-        font-size: 2.5rem;
-      }
-      
       .features {
         flex-direction: column;
-        gap: 20px;
+        gap: clamp(10px, 3vmin, 20px);
       }
       
       .message-bubble {
@@ -926,7 +947,33 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       }
 
       .footer-ad-card {
-        padding: 22px 8px 10px;
+        padding: 14px 8px 8px;
+      }
+    }
+
+    @media (max-height: 640px) {
+      .header {
+        padding: 10px 0;
+      }
+
+      .welcome-content {
+        padding: 4px 0;
+      }
+
+      .footer-ad-wrap {
+        padding: 4px 0 2px;
+      }
+
+      .footer-ad-card {
+        padding: 12px 8px 6px;
+      }
+
+      .footer {
+        padding: 6px 0 12px;
+      }
+
+      .chat-intro {
+        padding: 16px 12px;
       }
     }
   `]

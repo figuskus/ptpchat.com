@@ -41,6 +41,16 @@
 
 html, body {
   height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Single-screen shell: no page scroll; only inner regions (e.g. chat messages) may scroll */
+app-root {
+  display: block;
+  height: 100%;
+  max-height: 100%;
   overflow: hidden;
 }
 
