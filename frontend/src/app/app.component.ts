@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, ViewChild, ElementRef, AfterViewChecked, AfterViewInit } from '@angular/core';
+import { Component, inject, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
@@ -184,7 +184,8 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
 
       <!-- Sponsored area: below main UI, non-sticky (footer strip) -->
       <div class="footer-ad-wrap">
-        <div #adHost class="footer-ad-host"></div>
+        <!-- id used by src/load-footer-ads.ts (plain DOM; avoids Angular script handling) -->
+        <div id="ptpchat-ad-host" class="footer-ad-host"></div>
       </div>
 
       <!-- Footer -->
@@ -891,14 +892,13 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
   `]
 })
-export class AppComponent implements OnDestroy, AfterViewChecked, AfterViewInit {
+export class AppComponent implements OnDestroy, AfterViewChecked {
   private matchmaking = inject(MatchmakingService);
   private webrtc = inject(WebRTCService);
   private destroy$ = new Subject<void>();
   
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
   @ViewChild('messageInputRef') messageInputRef!: ElementRef;
-  @ViewChild('adHost') adHost?: ElementRef<HTMLElement>;
   
   status: ConnectionStatus = 'disconnected';
   messages: ChatMessage[] = [];
@@ -908,7 +908,6 @@ export class AppComponent implements OnDestroy, AfterViewChecked, AfterViewInit 
   showTerms = false;
   
   private shouldScrollToBottom = false;
-  private footerAdLoaded = false;
   
   constructor() {
     this.matchmaking.status$.pipe(takeUntil(this.destroy$)).subscribe((status) => {
@@ -929,11 +928,6 @@ export class AppComponent implements OnDestroy, AfterViewChecked, AfterViewInit 
     });
   }
   
-  ngAfterViewInit(): void {
-    // Defer so the ad host is attached and layout has settled (flex min-heights applied).
-    setTimeout(() => this.loadFooterAd(), 0);
-  }
-
   ngAfterViewChecked(): void {
     if (this.shouldScrollToBottom) {
       this.scrollToBottom();
@@ -994,46 +988,5 @@ export class AppComponent implements OnDestroy, AfterViewChecked, AfterViewInit 
       const el = this.messagesContainer.nativeElement;
       el.scrollTop = el.scrollHeight;
     }
-  }
-
-  // One slot only: both network snippets assign global `atOptions` and would clash if both ran.
-  private loadFooterAd(): void {
-    const host = this.adHost?.nativeElement;
-    if (!host || this.footerAdLoaded) return;
-    this.footerAdLoaded = true;
-
-    const mobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
-
-    const opts = mobile
-      ? {
-          key: '8b42e43eba12779e8f4f618928eb5231',
-          format: 'iframe',
-          height: 250,
-          width: 300,
-          params: {}
-        }
-      : {
-          key: 'bf32519f82bc0ae029b8dcb96eef9f58',
-          format: 'iframe',
-          height: 90,
-          width: 728,
-          params: {}
-        };
-
-    const src = mobile
-      ? 'https://www.highperformanceformat.com/8b42e43eba12779e8f4f618928eb5231/invoke.js'
-      : 'https://www.highperformanceformat.com/bf32519f82bc0ae029b8dcb96eef9f58/invoke.js';
-
-    host.classList.add(mobile ? 'footer-ad-host--mobile' : 'footer-ad-host--desktop');
-
-    // Match vendor markup: inline `atOptions` then `invoke.js` (some networks expect `var atOptions` in global scope).
-    const inline = document.createElement('script');
-    inline.text = `var atOptions = ${JSON.stringify(opts)};`;
-    host.appendChild(inline);
-
-    const ext = document.createElement('script');
-    ext.src = src;
-    ext.async = false;
-    host.appendChild(ext);
   }
 }
