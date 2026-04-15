@@ -52,8 +52,11 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
         </div>
       </header>
 
-      <!-- Main Content -->
-      <main class="main-content">
+      <!-- Main Content (scrolls with ads on welcome / matchmaking; chat keeps internal message scroll) -->
+      <main
+        class="main-content"
+        [class.main-content--scroll-ads]="isPreChatFlow"
+      >
         <!-- Welcome Screen -->
         @if (status === 'disconnected') {
           <div class="welcome-screen" @slideUp>
@@ -180,15 +183,15 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
             </div>
           </div>
         }
-      </main>
 
-      <!-- Sponsored area: below main UI (slot styled in .footer-ad-card) -->
-      <div class="footer-ad-wrap">
-        <div class="footer-ad-card">
-          <p class="footer-ad-label">Advertisement</p>
-          <div id="ptpchat-ad-host" class="footer-ad-host"></div>
+        <!-- Ads inside main: scroll with welcome/loading; sit under chat when partner left; hidden while typing -->
+        <div class="footer-ad-wrap" [class.footer-ad-wrap--hidden]="status === 'chatting'">
+          <div class="footer-ad-card">
+            <p class="footer-ad-label">Advertisement</p>
+            <div id="ptpchat-ad-host" class="footer-ad-host"></div>
+          </div>
         </div>
-      </div>
+      </main>
 
       <!-- Footer -->
       <footer class="footer" @fadeIn>
@@ -379,7 +382,7 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       background: #ef4444;
     }
 
-    // Main Content (min-height: 0 so flex layout can shrink; otherwise footer/ads stay clipped below the viewport)
+    // Main: chat/partner-left uses overflow hidden + inner message scroll; pre-chat flows scroll as one column with ads
     .main-content {
       flex: 1;
       min-height: 0;
@@ -388,7 +391,13 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       overflow: hidden;
     }
 
-    // Welcome Screen — no scroll: content scales/clamps inside flex area
+    .main-content--scroll-ads {
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    // Welcome Screen
     .welcome-screen {
       flex: 1;
       min-height: 0;
@@ -396,6 +405,14 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       align-items: center;
       justify-content: center;
       overflow: hidden;
+    }
+
+    .main-content--scroll-ads .welcome-screen {
+      flex: 0 1 auto;
+      min-height: min(72vh, 620px);
+      min-height: min(72dvh, 620px);
+      overflow: visible;
+      padding: 20px 0 8px;
     }
 
     .welcome-content {
@@ -408,6 +425,11 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       display: flex;
       flex-direction: column;
       justify-content: center;
+    }
+
+    .main-content--scroll-ads .welcome-content {
+      overflow: visible;
+      max-height: none;
     }
 
     .title {
@@ -498,6 +520,14 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       justify-content: center;
       gap: clamp(16px, 3vmin, 30px);
       overflow: hidden;
+    }
+
+    .main-content--scroll-ads .loading-screen {
+      flex: 0 1 auto;
+      min-height: min(56vh, 420px);
+      min-height: min(56dvh, 420px);
+      padding: 32px 0 16px;
+      overflow: visible;
     }
 
     .loader {
@@ -741,12 +771,21 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
       }
     }
 
-    // Footer — ad slot (card keeps layout stable; inner width matches fluid column)
+    // Ad slot inside main (scrolls with pre-chat; fixed under chat UI when partner left)
     .footer-ad-wrap {
       flex-shrink: 0;
       width: 100%;
-      padding: 6px 0 4px;
+      padding: 6px 0 12px;
+      margin-top: auto;
       border-top: 1px solid var(--border-color);
+    }
+
+    .main-content--scroll-ads .footer-ad-wrap {
+      margin-top: 0;
+    }
+
+    .footer-ad-wrap--hidden {
+      display: none;
     }
 
     .footer-ad-card {
@@ -800,10 +839,12 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
 
     .footer {
+      flex-shrink: 0;
       padding: 8px 0 16px;
       text-align: center;
       font-size: 0.8rem;
       color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
     }
     
     .footer-links {
@@ -1053,6 +1094,16 @@ export class AppComponent implements OnDestroy, AfterViewChecked {
     this.shouldScrollToBottom = true;
   }
   
+  /** Welcome / matchmaking: main column scrolls with ads. Chat uses internal message scroll instead. */
+  get isPreChatFlow(): boolean {
+    return (
+      this.status === 'disconnected' ||
+      this.status === 'connecting' ||
+      this.status === 'waiting' ||
+      this.status === 'matched'
+    );
+  }
+
   getStatusText(): string {
     switch (this.status) {
       case 'disconnected': return 'Offline';
