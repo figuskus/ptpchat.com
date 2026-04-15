@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, inject, OnDestroy, ViewChild, ElementRef, AfterViewChecked, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
@@ -182,6 +182,11 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
         }
       </main>
 
+      <!-- Sponsored area: below main UI, non-sticky (footer strip) -->
+      <div class="footer-ad-wrap" aria-hidden="true">
+        <div #adHost class="footer-ad-host"></div>
+      </div>
+
       <!-- Footer -->
       <footer class="footer" @fadeIn>
         <div class="footer-links">
@@ -200,7 +205,7 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
               <button class="modal-close" (click)="showPrivacy = false">×</button>
             </div>
             <div class="modal-body">
-              <p><strong>Last updated:</strong> January 2026</p>
+              <p><strong>Last updated:</strong> April 2026</p>
               
               <h3>1. Information We Collect</h3>
               <p>PTPChat is designed with privacy in mind. We collect minimal data:</p>
@@ -219,12 +224,15 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
               </ul>
               
               <h3>3. Data Sharing</h3>
-              <p>We do not sell, trade, or share any user data with third parties.</p>
+              <p>We do not sell, trade, or share your chat content or personal information with third parties for their own marketing. Advertising on PTPChat is delivered by independent third-party networks; how they process data for ad delivery and measurement is described in their respective privacy policies and in the sections below.</p>
               
-              <h3>4. Cookies</h3>
-              <p>We do not use cookies or tracking technologies.</p>
+              <h3>4. Advertising</h3>
+              <p>We may display advertisements to help keep PTPChat free. Ads are served by third-party providers that operate their own systems. Those providers may collect or receive technical information (such as device or browser details, approximate region, or ad interaction data) to show relevant ads, limit how often you see an ad, and measure performance. We do not have access to the contents of your private chats for advertising purposes.</p>
               
-              <h3>5. Contact</h3>
+              <h3>5. Cookies and similar technologies</h3>
+              <p>PTPChat itself does not use first-party cookies for analytics or cross-site tracking. Third-party advertising partners may use cookies, local storage, pixels, or similar technologies as part of delivering ads. You can restrict or delete cookies through your browser settings; note that some site or ad features may not work as intended if you do so.</p>
+              
+              <h3>6. Contact</h3>
               <p>For privacy concerns, contact us through our website.</p>
             </div>
           </div>
@@ -240,13 +248,13 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
               <button class="modal-close" (click)="showTerms = false">×</button>
             </div>
             <div class="modal-body">
-              <p><strong>Last updated:</strong> January 2026</p>
+              <p><strong>Last updated:</strong> April 2026</p>
               
               <h3>1. Acceptance of Terms</h3>
               <p>By using PTPChat, you agree to these terms. If you disagree, please do not use the service.</p>
               
               <h3>2. Service Description</h3>
-              <p>PTPChat is a free, anonymous chat service that connects random users for text-based conversations using peer-to-peer technology.</p>
+              <p>PTPChat is a free, anonymous chat service that connects random users for text-based conversations using peer-to-peer technology. The service may display third-party advertisements.</p>
               
               <h3>3. User Conduct</h3>
               <p>You agree NOT to:</p>
@@ -696,12 +704,38 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
 
     // Footer
+    .footer-ad-wrap {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 0 8px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .footer-ad-host {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .footer-ad-host--mobile {
+      min-height: 250px;
+      width: 300px;
+      max-width: 100%;
+    }
+
+    .footer-ad-host--desktop {
+      min-height: 90px;
+      width: min(728px, 100%);
+    }
+
     .footer {
-      padding: 20px 0;
+      padding: 12px 0 20px;
       text-align: center;
       font-size: 0.8rem;
       color: var(--text-muted);
-      border-top: 1px solid var(--border-color);
     }
     
     .footer-links {
@@ -850,13 +884,14 @@ import { WebRTCService, ChatMessage } from './services/webrtc.service';
     }
   `]
 })
-export class AppComponent implements OnDestroy, AfterViewChecked {
+export class AppComponent implements OnDestroy, AfterViewChecked, AfterViewInit {
   private matchmaking = inject(MatchmakingService);
   private webrtc = inject(WebRTCService);
   private destroy$ = new Subject<void>();
   
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
   @ViewChild('messageInputRef') messageInputRef!: ElementRef;
+  @ViewChild('adHost') adHost?: ElementRef<HTMLElement>;
   
   status: ConnectionStatus = 'disconnected';
   messages: ChatMessage[] = [];
@@ -866,6 +901,7 @@ export class AppComponent implements OnDestroy, AfterViewChecked {
   showTerms = false;
   
   private shouldScrollToBottom = false;
+  private footerAdLoaded = false;
   
   constructor() {
     this.matchmaking.status$.pipe(takeUntil(this.destroy$)).subscribe((status) => {
@@ -886,6 +922,10 @@ export class AppComponent implements OnDestroy, AfterViewChecked {
     });
   }
   
+  ngAfterViewInit(): void {
+    this.loadFooterAd();
+  }
+
   ngAfterViewChecked(): void {
     if (this.shouldScrollToBottom) {
       this.scrollToBottom();
@@ -946,5 +986,42 @@ export class AppComponent implements OnDestroy, AfterViewChecked {
       const el = this.messagesContainer.nativeElement;
       el.scrollTop = el.scrollHeight;
     }
+  }
+
+  // One slot only: both network snippets assign global `atOptions` and would clash if both ran.
+  private loadFooterAd(): void {
+    const host = this.adHost?.nativeElement;
+    if (!host || this.footerAdLoaded) return;
+    this.footerAdLoaded = true;
+
+    const mobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+
+    if (mobile) {
+      host.classList.add('footer-ad-host--mobile');
+      (window as unknown as { atOptions: Record<string, unknown> }).atOptions = {
+        key: '8b42e43eba12779e8f4f618928eb5231',
+        format: 'iframe',
+        height: 250,
+        width: 300,
+        params: {}
+      };
+      this.appendInvokeScript(host, 'https://www.highperformanceformat.com/8b42e43eba12779e8f4f618928eb5231/invoke.js');
+    } else {
+      host.classList.add('footer-ad-host--desktop');
+      (window as unknown as { atOptions: Record<string, unknown> }).atOptions = {
+        key: 'bf32519f82bc0ae029b8dcb96eef9f58',
+        format: 'iframe',
+        height: 90,
+        width: 728,
+        params: {}
+      };
+      this.appendInvokeScript(host, 'https://www.highperformanceformat.com/bf32519f82bc0ae029b8dcb96eef9f58/invoke.js');
+    }
+  }
+
+  private appendInvokeScript(container: HTMLElement, src: string): void {
+    const script = document.createElement('script');
+    script.src = src;
+    container.appendChild(script);
   }
 }
